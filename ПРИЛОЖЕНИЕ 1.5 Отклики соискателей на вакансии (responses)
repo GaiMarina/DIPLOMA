@@ -1,1 +1,87 @@
-
+<table>
+    <tr>
+        <td><b>Атрибут</b></td>
+        <td><b>Описание</b></td>
+        <td><b>Тип данных</b></td>
+    </tr>
+    <tr>
+        <td>activity_flag_candidate</td>
+        <td>Отметка кандидата. Приглашения и отклики: "активные" или "в архиве".</td>
+        <td>TINYINT</td>
+    </tr>
+    <tr>
+        <td>activity_flag_manager</td>
+        <td>Отметка кандидата. Приглашения и отклики: "активные" или "в архиве".</td>
+        <td>TINYINT</td>
+    </tr>
+    <tr>
+        <td>date_creation</td>
+        <td>Отметка менеджера: активная, в архиве.</td>
+        <td>DATE</td>
+    </tr>    
+    <tr>
+        <td>date_creation_mistake </td>
+        <td> Ошибки в датах атрибута date_creation </td>
+        <td>TINYINT</td>
+    </tr>
+    <tr>
+        <td>date_last_updated</td>
+        <td> Дата первой публикации этой версии вакансии в открытых данных портала </td>
+        <td>DATE</td>
+    </tr>
+    <tr>
+        <td>date_modify</td>
+        <td> Дата изменения отклика </td>
+        <td>DATE</td>
+    </tr>
+    <tr>
+        <td>date_modify_mistake</td>
+        <td> Ошибки в датах атрибута date_modify </td>
+        <td>TINYINT</td>
+    </tr>
+    <tr>
+        <td>id_candidate</td>
+        <td>Идентификатор соискателя</td>
+        <td>VARCHAR(40)</td>
+    </tr>
+    <tr>
+        <td>id_cv</td>
+        <td>Идентификатор соискателя</td>
+        <td>VARCHAR(40)</td>
+    </tr>
+    <tr>
+        <td>id_hiring_organization</td>
+        <td>  Идентификатор нанимающей организации  </td>
+        <td>VARCHAR(40)</td>
+    </tr>
+    <tr>
+        <td>is_new</td>
+        <td> Признак нового отклика </td>
+        <td>TINYINT</td>
+    </tr>
+    <tr>
+        <td>id_reply</td>
+        <td>Идентификатор отклика</td>
+        <td>VARCHAR(40)</td>
+    </tr>
+    <tr>
+        <td>id_response</td>
+        <td>Идентификатор отклика</td>
+        <td>VARCHAR(40) PK</td>
+    </tr>
+    <tr>
+        <td>id_vacancy</td>
+        <td>Идентификатор вакансии</td>
+        <td>VARCHAR(40)</td>
+    </tr>
+    <tr>
+        <td>region_code</td>
+        <td> Код региона </td>
+        <td>VARCHAR(30)</td>
+    </tr>
+    <tr>
+        <td>response_type</td>
+        <td> Тип отклика </td>
+        <td>ENUM('Отказ', 'Приглашение', 'Принятие'</td>
+    </tr>
+</table>
