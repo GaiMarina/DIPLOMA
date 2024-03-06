@@ -3,106 +3,57 @@
 
 ## 5.1 Выгрузка данных для последующей визуализации.
 
-5.2 Сохранение уникальных значений.
-CREATE TABLE visual.vacancies_UQ LIKE diploma.vacancies;
+5.1.1 Сохранение уникальных значений.
 
+Таблицы vacancies и curricula_vitae являются слепком всех данных по вакансиям и резюме соискателей, поступающих в БД.
+По этой причине, например, таблице vacancies нет уникального идентификатора. Любые изменения вносимые в данные 
+по вакансии, пересохраняют запись под одним и тем же идентификатором. Для проведения анализа рынка вакансий с 
+точки зрения появления новых вакансий и новых компаний, которые ранее не были клиентами портала Роструда «Работа России», 
+была проведена выгрузка данных таблицы, сохраняющая первое появление записи о вакансии в БД с минимальной датой обновления записи. 
+
+```SQL
+CREATE TABLE visual.vacancies_UQ LIKE diploma.vacancies;
 ALTER TABLE visual.vacancies_UQ
 MODIFY COLUMN identifier varchar(40) PRIMARY KEY;
-
 INSERT IGNORE INTO visual.vacancies_UQ
 SELECT * FROM diploma.vacancies ORDER BY date_last_updated;
+```
+Подобным же образом была преобразована таблица curricula_vitae для мониторинга новых резюме.
 
-5.3 Выгрузка по году для визуализации.
-Сортируем по дате и году.
+В дальнейшем данные были ограничены до сведений 2019-2020 годов. За эти два года имеется наиболее 
+полная помесячная информация как по вакансиям, так и по резюме. 
 
-SELECT date_creation AS `Значения`, 
-COUNT(date_creation) AS `Количество`
-FROM curricula_vitae 
-GROUP BY date_creation
-ORDER BY year(date_creation);
+## 5.2 Работа с данными в MS Power BI.
+Microsoft Power BI - это платформа для бизнес-аналитики. Она позволяет аккумулировать и структурировать данные из разных источников,
+преобразовывая их в единый формат. Эти данные используются для различных видов визуализаций и последующего построения интерактивных
+отчетов для наглядного анализа и принятия управленческих и бизнес решений.
+Полученный интерактивный отчет состоит из трех листов: обложки, данных по вакансиям и данных по резюме соискателей. 
+Интерактивные элементы, улучшающие пользовательский (User Interface) опыт могут быть следующими: 
+- удобные кнопки меню для перемещения по страницам;
+- кнопка-логотип с функцией возврата к начальной странице отчета;
+- обязательная кнопка сброса всех фильтров (в правом верхнем углу);
+- быстрый доступ к фильтрации по году;
+- формат кнопок-закладок, позволяющих переключаться между несколькими тематическими матрицами не перемещаясь по ленте 
+отчета.
 
--- создаем пустую копию таблицы
-CREATE TABLE cur_vit_2020_21 LIKE curricula_vitae;
+Страница отчета по вакансиям позволяет увидеть 
 
--- меняем столбец на primary key
-ALTER TABLE cur_vit_2020_21
-    MODIFY id_cv VARCHAR(40) PRIMARY KEY;
+Отследить уровень заработной платы предлагаемый компаниями. Наравне с медианным значением, в отчете отражены 25 и 75 перцентили.
+В целом, анализ заработной платы позволяет оценить позицию компании на рынке труда и принять 
+соответствующие меры для обеспечения конкурентоспособности и привлекательности предложений по зарплате.
 
--- добавляем значения в таблицу, заменяя уникальный ключ, если надо
-INSERT IGNORE cur_vit_2020_21 
-SELECT * FROM curricula_vitae
-WHERE YEAR(date_creation) = 2020 OR YEAR(date_creation) = 2021
-ORDER BY date_last_updated;
+25-й перцентиль  - показатель, который помогает определить уровень заработной платы для 
+нижнего квартиля работников. Если компания предлагает заработную плату ниже 25-го перцентиля, это может быть признаком 
+низкой конкурентоспособности и возможно приведет к трудностям в привлечении и удержании квалифицированных сотрудников.
+Предложение по заработной плате на уровне выше 75-го перцентиля может быть признаком высокой конкурентоспособности и 
+привлекательности предложения для квалифицированных специалистов.
 
--- добавляем значения в таблицу c primary key, заменяя уникальный ключ, если надо
-REPLACE INTO curricula_vitae_2021_tmp SELECT * FROM curricula_vitae_2021
-ORDER BY date_last_updated;
+В целом количество новых вакансий снизилось на 16,5% в 2020 году по сравнению с 2019 годом.
 
-Сохранить из одной базы в другую часть таблицы:
--- из одной таблицы в другую по условию (responses_21 заполнила)
-INSERT INTO visual.responses_21 
-	SELECT * FROM diploma.responses 
-		WHERE id_vacancy IN 
-			(SELECT identifier FROM visual.vacancies_21);
+Медианный срок закрытия вакансии - 2 месяца. Почти 100% вакансий, включая повторный поиск по одним и тем же вакансиям, 
+закрываются в течении полугода.
 
-Выгрузка айтишников за 20_21 год: 40_198 записей.
-CREATE TABLE visual.it_20_21 LIKE diploma.vac_2020_21;
+Около 16% вакансий относятся к сфере производства. Соответственно и в 2019 и в 2020 году именно данная сфера предложений 
+по вакансиям лидирует в плане обеспечения сотрудников ДМС. На втором месте - банковская сфера.
 
-INSERT INTO visual.it_20_21 
-SELECT * FROM diploma.vac_2020_21 
-WHERE industry  = 'InformationTechnology';
-	Пустые ячейки отрасли.
-SELECT count(1) FROM vacancies_20_21 WHERE industry IS NULL; -- 8709
-
-SELECT count(1) FROM vacancies_21 WHERE industry IS NULL; -- 7911
-
-SELECT count(1) FROM diploma.vac_2020_21 
-WHERE industry IS NULL AND YEAR(date_creation) = 2020; -- 798
-
-	Количлелство ИТ вакансий за 20 и 21 год.
-SELECT count(1) FROM it_20_21 WHERE year(date_creation) = 2020; -- 21509
-
-SELECT count(1) FROM it_20_21 WHERE year(date_creation) = 2021; -- 18689
-
-	Разных наименований Information Technologies в айтишниках за 20, 21 годы.
-SELECT title FROM it_20_21 GROUP BY title; -- 3_591
-	Количество резюме ИТ за 20, 21
-SELECT count(1) FROM it_cv_20_21 WHERE year(date_creation) = 2020; -- 72197
-
-SELECT count(1) FROM it_cv_20_21 WHERE year(date_creation) = 2021; -- 26386
-
-
--- из одной таблицы в другую по условию (responses_21 заполнила)
-INSERT INTO visual.responses_21 
-	SELECT * FROM diploma.responses 
-		WHERE id_vacancy IN 
-			(SELECT identifier FROM visual.vacancies_21);
-
-CREATE TABLE cv_21_09_11 LIKE cv_21;
-
-INSERT INTO cv_21_09_11 SELECT * FROM cv_21
-		WHERE month(date_creation) = 09 
-			OR month(date_creation) = 10
-            OR month(date_creation) = 11;
-
-Выгрузка: CREATE TABLE visual.vac2021_09_10 LIKE visual.vacancies_uq;
-INSERT INTO visual.vac2021_09_10 SELECT * FROM visual.vac_2021
-		WHERE MONTH(date_creation) = 09
-        OR MONTH(date_creation) = 10; 
- Сначала индекс:
-CREATE INDEX `id_vac` ON diploma.responses (id_vacancy);
-CREATE INDEX `id_cv` ON diploma.responses (id_cv);
-
-CREATE TABLE visual.resp_20_21 LIKE diploma.responses;
-INSERT INTO visual.resp_20_21 SELECT * FROM diploma.responses
-		WHERE id_vacancy IN 
-			(SELECT identifier FROM visual.vac_2020)
-            OR id_vacancy IN 
-			(SELECT identifier FROM visual.vac_2021)
-            OR id_cv IN 
-			(SELECT id_cv FROM visual.cv_2020)
-            OR id_cv IN 
-			(SELECT id_cv FROM visual.cv_2021);
-
-
-## 4.2 Работа с данными в MS Power BI посредством Direct Query.
+На сезонную работу в большинстве своем идут мужчины. Удаленки хотят женщины. На частичную занятость претендуют женщины. 
